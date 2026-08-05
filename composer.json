@@ -1,0 +1,26 @@
+{
+  "name": "chandu7929/composer-root-dependency-guard",
+  "description": "A Composer plugin that detects redundant root dependencies and warns when a package is already required by another installed package.",
+  "type": "composer-plugin",
+  "license": "MIT",
+  "keywords": [
+    "composer",
+    "composer-plugin",
+    "dependencies",
+    "dependency-management",
+    "composer-lock",
+    "root-dependency"
+  ],
+  "autoload": {
+    "psr-4": {
+      "ComposerRootDependencyGuard\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^8.1",
+    "composer-plugin-api": "^2.0"
+  },
+  "extra": {
+    "class": "ComposerRootDependencyGuard\\RootDependencyGuardPlugin"
+  }
+}

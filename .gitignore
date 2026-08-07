@@ -1,0 +1,60 @@
+# IDE and Editor
+.idea/
+.vscode/
+.env.local
+.env.*.local
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+*.iml
+*.sublime-workspace
+*.sublime-project
+.editorconfig
+
+# PHP and Composer
+vendor/
+composer.lock
+.php_cs.cache
+.php-cs-fixer.cache
+
+# Testing
+coverage/
+.phpunit.result.cache
+phpunit.xml.backup
+.phpunit.cache/
+
+# Build and Distribution
+build/
+dist/
+*.tar
+*.tar.gz
+*.zip
+
+# Logs
+*.log
+logs/
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+.cache/
+
+# OS specific
+Thumbs.db
+*.bak
+*.swp
+*~
+
+# Node (if using npm/webpack tools in future)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Project specific
+.env
+.env.example
+

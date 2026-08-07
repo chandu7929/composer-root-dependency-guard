@@ -7,7 +7,6 @@ namespace ComposerRootDependencyGuard;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
-use Composer\Locker\LockerInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
@@ -40,18 +39,27 @@ class RootDependencyGuardPlugin implements PluginInterface, EventSubscriberInter
 
     public function checkRedundantDependencies(Event $event): void
     {
-        $locker = $this->composer->getLocker();
+        try {
+            $locker = $this->composer->getLocker();
 
-        if (! $locker->isLocked()) {
+            if (! $locker->isLocked()) {
+                return;
+            }
+
+            $lockData = $locker->getLockData();
+
+            if (empty($lockData)) {
+                return;
+            }
+
+            $lockedPackages = array_merge(
+                $lockData['packages'] ?? [],
+                $lockData['packages-dev'] ?? []
+            );
+        } catch (\Exception $e) {
+            $this->io->writeError("<error>Error while checking redundant dependencies: {$e->getMessage()}</error>");
             return;
         }
-
-        $lockData = $locker->getLockData();
-
-        $lockedPackages = array_merge(
-            $lockData['packages'] ?? [],
-            $lockData['packages-dev'] ?? []
-        );
 
         $rootDependencies = $this->getRootDependencies();
 
@@ -82,6 +90,8 @@ class RootDependencyGuardPlugin implements PluginInterface, EventSubscriberInter
     }
 
     /**
+     * Retrieves the list of all root dependencies (both require and require-dev).
+     *
      * @return array<string>
      */
     private function getRootDependencies(): array
@@ -95,9 +105,14 @@ class RootDependencyGuardPlugin implements PluginInterface, EventSubscriberInter
     }
 
     /**
-     * @param array<int, array<string, mixed>> $packages
+     * Builds a map of which packages require each dependency.
      *
-     * @return array<string, array<string>>
+     * Maps each dependency name to an array of packages that require it.
+     * This helps identify when a root dependency is already satisfied by another package.
+     *
+     * @param array<int, array<string, mixed>> $packages List of locked packages with their requirements
+     *
+     * @return array<string, array<string>> Map of dependency name => [list of packages requiring it]
      */
     private function buildRequiredByMap(array $packages): array
     {
@@ -118,6 +133,12 @@ class RootDependencyGuardPlugin implements PluginInterface, EventSubscriberInter
         return $map;
     }
 
+    /**
+     * Displays a warning message about a redundant root dependency.
+     *
+     * @param string $dependency The redundant root dependency package name
+     * @param array<string> $requiredBy List of packages that already require this dependency
+     */
     private function warn(string $dependency, array $requiredBy): void
     {
         $this->io->writeError([
@@ -140,6 +161,14 @@ class RootDependencyGuardPlugin implements PluginInterface, EventSubscriberInter
         ]);
     }
 
+    /**
+     * Checks if a package is a platform or virtual package that should be ignored.
+     *
+     * Platform packages include PHP version constraints, extensions (ext-*),
+     * system libraries (lib-*), and Composer-related packages.
+     *
+     * @param string $package The package name to check
+     */
     private function isPlatformPackage(string $package): bool
     {
         return $package === 'php'

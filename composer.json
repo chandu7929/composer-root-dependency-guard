@@ -20,6 +20,16 @@
     "php": "^8.1",
     "composer-plugin-api": "^2.0"
   },
+  "require-dev": {
+    "composer/composer": "^2.0",
+    "phpunit/phpunit": "^11.0"
+  },
+  "scripts": {
+    "test": "phpunit",
+    "test:verbose": "phpunit --verbose",
+    "test:coverage": "phpunit --coverage-html coverage",
+    "test:filter": "phpunit --filter"
+  },
   "extra": {
     "class": "ComposerRootDependencyGuard\\RootDependencyGuardPlugin"
   }

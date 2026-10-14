@@ -1,0 +1,8 @@
+{
+  "tag_name": "v1.1.0",
+  "target_commitish": "main",
+  "name": "v1.1.0",
+  "body": "Treat only actual composer.json require/require-dev entries as root dependencies to avoid false positives in projects where packages are pulled in by upstream/meta packages.",
+  "draft": false,
+  "prerelease": false
+}

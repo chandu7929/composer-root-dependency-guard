@@ -92,10 +92,32 @@ class RootDependencyGuardPlugin implements PluginInterface, EventSubscriberInter
     /**
      * Retrieves the list of all root dependencies (both require and require-dev).
      *
+     * First attempts to read the project's composer.json directly to avoid false
+     * positives where Composer's in-memory package representation may include
+     * entries that are not actually present in the root composer.json on disk.
+     *
      * @return array<string>
      */
     private function getRootDependencies(): array
     {
+        $composerJsonPath = getcwd() . '/composer.json';
+
+        if (is_readable($composerJsonPath)) {
+            $json = @file_get_contents($composerJsonPath);
+
+            if ($json !== false) {
+                $data = json_decode($json, true);
+
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $requires = array_keys($data['require'] ?? []);
+                    $devRequires = array_keys($data['require-dev'] ?? []);
+
+                    return array_values(array_unique(array_merge($requires, $devRequires)));
+                }
+            }
+        }
+
+        // Fallback to Composer API when composer.json cannot be read.
         $package = $this->composer->getPackage();
 
         return array_keys(array_merge(
